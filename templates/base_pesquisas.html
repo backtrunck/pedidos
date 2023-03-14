@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block page_header %}
+{% endblock %}
+
+{% block conteudo %}
+
+    <div class="border border-2 p-2 mt-3">
+        {% block form_pesquisa %}
+        {% endblock %}
+    </div>
+
+    <div class="border border-2 p-2 mt-3">
+        {% block grid_resultado %}
+        {% endblock %}
+    </div>
+{% endblock %}

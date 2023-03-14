@@ -1,0 +1,62 @@
+{% extends "base_pesquisas.html" %}
+
+{% block page_header %}
+    <h2 class="text-center"> {{ header }} </h2>
+{% endblock %}
+
+{% block form_pesquisa %}
+<form class="row g-3" method="post" action="{{ url_for('obter_produtos', _method='POST') }}">
+        {{ form.csrf_token }}
+        <div class="row p-2">
+            <div class="col-md-2">
+              {{ form.id.label(for="id",class="form-label") }}
+              {{ form.id(class="form-control", id="id") }}
+            </div>
+            <div class="col-md-3">
+                {{ form.cod_barras.label(for="cod_barras", class="form-label") }}
+                {{ form.cod_barras(class="form-control", id="cod_barras") }}
+            </div>
+            <div class="col-md-5">
+                {{form.ds_produto.label(for="ds_produto",class="form-label") }}
+                {{ form.ds_produto(class="form-control", id="cod_barras") }}
+            </div>
+            <div class="col-md-2">
+                {{form.categoria_id.label(for="categoria_id",class="form-label") }}
+                {{ form.categoria_id(class="form-control", id="categoria_id") }}
+            </div>
+        </div>
+
+        <div class="row p-2">
+            <div class="col-md-12">
+                {{ form.submit(class="btn btn-primary") }}
+                {{ form.submit(class="btn btn-primary",value="Fechar") }}
+            </div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block grid_resultado %}
+    <div class="table-responsive">
+        <table class="table table-bordered border-primary table-hover  table-sm"  >
+                  <thead class="p-3 mb-2 bg-primary text-white ">
+                  <!--navbar-dark bg-primary or (bg-light text-dark)-->
+                    <tr>
+                      <th scope="col">id</th>
+                      <th scope="col">Cód. Barras</th>
+                      <th scope="col">Descrição</th>
+                      <th scope="col">Categoria</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for dado in dados %}
+                    <tr class = "align-middle">
+                      <td class="text-nowrap" scope="row">{{ dado.id }}</td>
+                      <td class="text-nowrap" scope="row">{{ dado.cod_barras }}</td>
+                      <td class="text-nowrap" scope="row">{{ dado.ds_produto }}</td>
+                      <td class="text-nowrap" scope="row">{{ dado.categoria_id }}</td>
+                    </tr>
+                  {% endfor %}
+                  </tbody>
+        </table>
+    </div>
+{% endblock %}
