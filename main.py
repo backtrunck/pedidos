@@ -97,13 +97,23 @@ class Produto(db.Model):
 
 @app.route('/')
 def index():
+    pagina_atual = 'index'
+    # a requisição está vindo de uma página diferente?????
+    if session.get('pagina_atual', None) != pagina_atual:
+        session['pagina_atual'] = pagina_atual
+
     return render_template('base.html')
 
 
 @app.route('/produtos', methods=['GET', 'POST'])
 def obter_produtos():
     param_pesquisa = 'param_pesquisa'
+    pagina_atual = 'obter_produtos'
     form_produto = ProdutoForm()
+    # a requisição está vindo de uma página diferente?????
+    if session.get('pagina_atual', None) != pagina_atual:
+        session.pop(param_pesquisa, None)
+        session['pagina_atual'] = pagina_atual
 
     if form_produto.validate_on_submit():
         if form_produto.submit.raw_data[0].upper() == 'FECHAR':
@@ -141,6 +151,10 @@ def obter_produtos():
 
 @app.route('/cliente/<id_cliente>')
 def obter_cliente(id_cliente):
+    pagina_atual = 'obter_cliente'
+    # a requisição está vindo de uma página diferente?????
+    if session.get('pagina_atual', None) != pagina_atual:
+        session['pagina_atual'] = pagina_atual
     # faz um consulta no banco ao cliente com id = id_cliente
     user_agent = request.headers.get('User-Agent')
     query = Cliente.buscar_cliente({'id': id_cliente})
