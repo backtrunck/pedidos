@@ -1,0 +1,34 @@
+{% macro render_pagination(pagination,destination) %}
+        {% if pagination %}
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    {% if pagination.has_prev %}
+                      <li class="page-item"> <a class="page-link" href="{{ url_for(destination, page=pagination.prev_num) }}">Previous</a></li>
+                    {% else %}
+                      <li class="page-item"><a class="page-link btn disabled" href="#">Previous</a></li>
+                    {% endif %}
+
+                    {% for page in pagination.iter_pages(left_edge=3, right_edge=3) %}
+                        {% if page %}
+
+                            {% if page==pagination.page %}
+                              <li class="page-item active"><a class="page-link" href="{{ url_for(destination, page=page) }}">{{ page }}</a></li>
+                            {% else %}
+                              <li class="page-item"><a class="page-link" href="{{ url_for(destination, page=page) }}">{{ page }}</a></li>
+                            {% endif %}
+
+                        {% else %}
+                          <li class="page-item disabled" id="example_ellipsis"><a href="#" class="page-link">…</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                      <li class="page-item"> <a class="page-link" href="{{ url_for(destination, page=pagination.next_num) }}">Next</a></li>
+                    {% else %}
+                      <li class="page-item"><a class="page-link btn disabled" href="#">Next</a></li>
+                    {% endif %}
+
+                    </ul>
+            </nav>
+       {% endif %}
+{% endmacro %}

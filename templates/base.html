@@ -36,7 +36,7 @@
                             </li>
                             <li class="nav-item">
                                   <a class="nav-link active" aria-current="page"
-                                     href="{{ url_for('index') }}">Categoria</a>
+                                     href="{{ url_for('obter_categoria') }}">Categoria</a>
                             </li>
                         </ul>
                    </div>
@@ -49,7 +49,12 @@
             <h2 class="text-center"> Pedidos </h2>
         {% endblock %}
 		</div>
-		<!-- mensagens flash -->
+		{% for message in get_flashed_messages() %}
+            <div class="alert alert-primary alert-dismissible fade show" role="alert"">
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                {{ message }}
+            </div>
+        {% endfor %}
 		<!-- bloco de conteúdo -->
         {% block conteudo %}
         {% endblock %}

@@ -1,4 +1,5 @@
 {% extends "base_pesquisas.html" %}
+{% import '_macros.html' as mcros %}
 
 {% block page_header %}
     <h2 class="text-center"> {{ header }} </h2>
@@ -59,4 +60,5 @@
                   </tbody>
         </table>
     </div>
+    {{ mcros.render_pagination(paginacao,'obter_produtos') }}
 {% endblock %}
