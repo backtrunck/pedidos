@@ -2,11 +2,16 @@ import configparser
 import os
 import pickle
 
-from flask import Flask, render_template, request, redirect, session, url_for, flash
+from io import BytesIO
+from flask import Flask, render_template, request, redirect, session, url_for, flash, make_response
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
+from openpyxl import Workbook
+from openpyxl.cell.cell import ILLEGAL_CHARACTERS_RE
+from tempfile import NamedTemporaryFile
 from wtforms import StringField, SubmitField
-from wtforms.validators import DataRequired
+from wtforms.validators import Length, DataRequired
+
 
 default = 'DEFAULT'
 PAGES = 3
@@ -22,11 +27,7 @@ BANCO = file_config[default]['BANCO']
 
 db = SQLAlchemy()
 app = Flask(__name__)
-# user = 'pedidos_app'
-# pwd = '#12345'
-# host = 'localhost'
-# banco = 'pedidos'
-# app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql://{user}:{pwd}@{host}/{banco}"
+
 app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql://{USER}:{PWD}@{HOST}/{BANCO}"
 app.config['SECRET_KEY'] = 'palavra dificil de advinhar'
 db.init_app(app)
@@ -54,15 +55,17 @@ class CustomFlaskForm(FlaskForm):
             if class_attribute:
                 class_attribute.data = value
 
+
 class CategoriaForm(CustomFlaskForm):
     id = StringField('id')
     ds_categoria = StringField('Descrição')
     submit = SubmitField('Pesquisar')
 
+
 class ProdutoForm(CustomFlaskForm):
     id = StringField('id')
     # validators=[DataRequired()]
-    cod_barras = StringField('Cód. Barras')
+    cod_barras = StringField('Cód. Barras', validators=[Length(max=15)])
     ds_produto = StringField('Descrição')
     categoria_id = StringField('Categoria')
     submit = SubmitField('Pesquisar')
@@ -75,7 +78,7 @@ class Categoria(db.Model):
 
 
     @classmethod
-    def buscar_categoria(cls, parametros):
+    def buscar(cls, parametros):
         query = cls.query.order_by(cls.ds_categoria)
         for field_key, field_value in parametros.items():
             if field_key == 'id':
@@ -92,7 +95,7 @@ class Cliente(db.Model):
     nm_cliente = db.Column(db.String(200))
 
     @classmethod
-    def buscar_cliente(cls, parametros):
+    def buscar(cls, parametros):
         query = cls.query.order_by(cls.nm_cliente)
         for field_key, field_value in parametros.items():
             if field_key == 'id':
@@ -114,7 +117,7 @@ class Produto(db.Model):
 
 
     @classmethod
-    def buscar_produto(cls, parametros):
+    def buscar(cls, parametros):
         query = cls.query.order_by(cls.ds_produto)
         for field_key, field_value in parametros.items():
             if field_key == 'id':
@@ -127,6 +130,27 @@ class Produto(db.Model):
                 query = query.filter(cls.categoria_id == field_value)
 
         return query
+    @classmethod
+    def gerar_xlsx(cls, parametros, query=None):
+        if query is None:
+            # se a query veio vazia traz todos os dados
+            query = cls.buscar(parametros)
+        dados = query.all()
+        if dados:
+            wb = Workbook()
+            ws1 = wb.active
+            # cabeçalho do arquivo excel
+            ws1.append(
+                ['id', 'código_barras', 'descrição', 'categoria_id'])
+            for dado in dados:
+                # linhas do arquivo excel
+                ds_produto = ILLEGAL_CHARACTERS_RE.sub(r'', dado.ds_produto)
+                ws1.append([dado.id, dado.cod_barras, dado.ds_produto, dado.categoria_id])
+
+            with NamedTemporaryFile() as tmp:
+                wb.save(tmp.name)
+                output = BytesIO(tmp.read())
+            return output
 
 
 @app.route('/')
@@ -138,6 +162,7 @@ def index():
 
     return render_template('base.html')
 
+
 @app.route('/produtos', defaults={'page': 1}, methods=('post', 'get'))
 @app.route('/produtos/<int:page>')
 def obter_produtos(page):
@@ -148,19 +173,27 @@ def obter_produtos(page):
     if session.get('pagina_atual', None) != pagina_atual:
         session.pop(param_pesquisa, None)
         session['pagina_atual'] = pagina_atual
-
+    # se for um POST e o form foi bem preechido?
     if form_produto.validate_on_submit():
         if form_produto.submit.raw_data[0].upper() == 'FECHAR':
             # apagando os dados de pesquisa q estão na sessão.
             session.pop(param_pesquisa, None)
             # indo para a página principal
             return redirect(url_for('index'))
-
+        if form_produto.submit.raw_data[0].upper() == 'EXCEL':
+            session['button_excel'] = 'S'
         # é porque foi enviado um post
         # pega os dados do formulario (is_any_filled) e guarda na sessão no "formato string pickles".
         session[param_pesquisa] = pickle.dumps(form_produto.is_any_filled())
         return redirect(url_for('obter_produtos'))
     else:
+        excel = False
+        # se clicou no botão excel
+        if session.get('button_excel', None) == 'S':
+            excel = True
+            # limpando a sesão
+            session.pop('button_excel', None)
+
         # pega da sessão a informação preenchida no formulário no "formato string pickles"
         campos_preenchidos = session.get(param_pesquisa, None)
         # se veio dados da sessão
@@ -171,7 +204,6 @@ def obter_produtos(page):
         if campos_preenchidos:
             # o dict não é vazio
             query = Produto.buscar_produto(campos_preenchidos)
-            #query = query.all()
             form_produto.fill_form(campos_preenchidos)
         else:
             query = Produto.query
@@ -181,11 +213,26 @@ def obter_produtos(page):
         if paginacao.pages == 0:
             flash('Não foram encontrados contratos para esta pesquisa.')
             produtos = []
+            return render_template('pesquisar_produtos.html',
+                                   header='Pesquisar Produtos',
+                                   dados=produtos,
+                                   form=form_produto,
+                                   paginacao=paginacao)
         else:
-            # qt_itens = PAGES
-            # if paginacao.pages > 1:
-            #     qt_itens = PAGES * (paginacao.pages - 1)
+            qt_itens = PAGES
+            if paginacao.pages > 1:
+                qt_itens = PAGES * (paginacao.pages - 1)
             produtos = paginacao.items
+
+        if excel:
+            if qt_itens > 16000:
+                flash('Arquivo muito grande, restrinja a pesquisa.')
+            else:
+                content = Produto.gerar_xlsx(campos_preenchidos, query)
+                response = make_response(content)
+                response.headers['Content-Disposition'] = 'attachment; filename=produtos.xlsx'
+                response.headers['Content-type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                return response
 
     return render_template('pesquisar_produtos.html',
                            header='Pesquisar Produtos',
