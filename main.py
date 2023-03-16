@@ -1,3 +1,5 @@
+import configparser
+import os
 import pickle
 
 from flask import Flask, render_template, request, redirect, session, url_for, flash
@@ -6,15 +8,26 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 
+default = 'DEFAULT'
 PAGES = 3
+
+basedir = os.path.relpath(os.path.dirname(__file__))
+
+file_config = configparser.ConfigParser()
+file_config.read(os.path.join(basedir, '.local_settings.cfg'))
+USER = file_config[default]['USER']
+PWD = file_config[default]['PWD']
+HOST = file_config[default]['HOST']
+BANCO = file_config[default]['BANCO']
 
 db = SQLAlchemy()
 app = Flask(__name__)
-user = 'pedidos_app'
-pwd = '#12345'
-host = 'localhost'
-banco = 'pedidos'
-app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql://{user}:{pwd}@{host}/{banco}"
+# user = 'pedidos_app'
+# pwd = '#12345'
+# host = 'localhost'
+# banco = 'pedidos'
+# app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql://{user}:{pwd}@{host}/{banco}"
+app.config["SQLALCHEMY_DATABASE_URI"] = f"mysql://{USER}:{PWD}@{HOST}/{BANCO}"
 app.config['SECRET_KEY'] = 'palavra dificil de advinhar'
 db.init_app(app)
 
