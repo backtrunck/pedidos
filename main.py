@@ -3,7 +3,7 @@ import os
 import pickle
 
 from io import BytesIO
-from flask import Flask, render_template, request, redirect, session, url_for, flash, make_response
+from flask import flash, Flask, make_response, redirect, render_template, request, session, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
 from openpyxl import Workbook
@@ -130,6 +130,7 @@ class Produto(db.Model):
                 query = query.filter(cls.categoria_id == field_value)
 
         return query
+
     @classmethod
     def gerar_xlsx(cls, parametros, query=None):
         if query is None:
@@ -147,9 +148,11 @@ class Produto(db.Model):
                 ds_produto = ILLEGAL_CHARACTERS_RE.sub(r'', dado.ds_produto)
                 ws1.append([dado.id, dado.cod_barras, dado.ds_produto, dado.categoria_id])
 
-            with NamedTemporaryFile() as tmp:
+            with NamedTemporaryFile(delete=False) as tmp:
                 wb.save(tmp.name)
                 output = BytesIO(tmp.read())
+                tmp.close()
+                os.unlink(tmp.name)
             return output
 
 
