@@ -1,20 +1,25 @@
 {% extends "base_pesquisas.html" %}
+{% import '_macros.html' as mcros %}
 
 {% block page_header %}
     <h2 class="text-center"> {{ header }} </h2>
 {% endblock %}
 
 {% block form_pesquisa %}
-<form class="row g-3" method="post" action="{{ url_for('obter_categoria', _method='POST') }}">
+<form class="row g-3" method="post" action="{{ url_for('main.obter_cliente', _method='POST') }}">
         {{ form.csrf_token }}
         <div class="row p-2">
-            <div class="col-md-2">
+           <div class="col-md-2">
               {{ form.id.label(for="id",class="form-label") }}
               {{ form.id(class="form-control", id="id") }}
             </div>
+            <div class="col-md-3">
+              {{ form.cpf.label(for="cpf",class="form-label") }}
+              {{ form.cpf(class="form-control", cpf="cpf") }}
+            </div>
             <div class="col-md-5">
-                {{form.ds_categoria.label(for="ds_categoria",class="form-label") }}
-                {{ form.ds_categoria(class="form-control", id="id") }}
+                {{form.nm_cliente.label(for="nm_cliente",class="form-label") }}
+                {{ form.nm_cliente(class="form-control", nm_cliente="nm_cliente") }}
             </div>
 
         </div>
@@ -22,6 +27,7 @@
         <div class="row p-2">
             <div class="col-md-12">
                 {{ form.submit(class="btn btn-primary") }}
+                {{ form.submit(class="btn btn-primary",value="Excel") }}
                 {{ form.submit(class="btn btn-primary",value="Fechar") }}
             </div>
         </div>
@@ -35,7 +41,8 @@
                   <!--navbar-dark bg-primary or (bg-light text-dark)-->
                     <tr>
                       <th scope="col">id</th>
-                      <th scope="col">Descrição</th>
+                      <th scope="col">Cpf</th>
+                        <th scope="col">Nome</th>
 
                     </tr>
                   </thead>
@@ -43,10 +50,12 @@
                   {% for dado in dados %}
                     <tr class = "align-middle">
                       <td class="text-nowrap" scope="row">{{ dado.id }}</td>
-                      <td class="text-nowrap" scope="row">{{ dado.ds_categoria }}</td>
+                      <td class="text-nowrap" scope="row">{{ dado.cpf }}</td>
+                      <td class="text-nowrap" scope="row">{{ dado.nm_cliente }}</td>
                     </tr>
                   {% endfor %}
                   </tbody>
         </table>
     </div>
+    {{ mcros.render_pagination(paginacao,'main.obter_cliente') }}
 {% endblock %}

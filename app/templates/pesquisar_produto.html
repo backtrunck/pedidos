@@ -6,7 +6,7 @@
 {% endblock %}
 
 {% block form_pesquisa %}
-<form class="row g-3" method="post" action="{{ url_for('obter_produtos', _method='POST') }}">
+<form class="row g-3" method="post" action="{{ url_for('main.obter_produto', _method='POST') }}">
         {{ form.csrf_token }}
         <div class="row p-2">
             <div class="col-md-2">
@@ -61,5 +61,5 @@
                   </tbody>
         </table>
     </div>
-    {{ mcros.render_pagination(paginacao,'obter_produtos') }}
+    {{ mcros.render_pagination(paginacao,'main.obter_produto') }}
 {% endblock %}

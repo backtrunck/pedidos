@@ -19,7 +19,7 @@
           <div class="container">
               <nav class="navbar  navbar-expand-lg navbar-dark bg-primary border border-2 p-2 mt-3">
                    <div class="container-fluid">
-                        <a class="navbar-brand" href="{{ url_for('index') }}">Home</a>
+                        <a class="navbar-brand" href="{{ url_for('main.index') }}">Home</a>
                         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
                                 aria-expanded="false" aria-label="Toggle navigation">
@@ -28,15 +28,15 @@
                         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                             <li class="nav-item">
                                   <a class="nav-link active" aria-current="page"
-                                     href="{{ url_for('obter_cliente', id_cliente=1) }}">Clientes</a>
+                                     href="{{ url_for('main.obter_cliente', id_cliente=1) }}">Clientes</a>
                             </li>
                             <li class="nav-item">
                                   <a class="nav-link active" aria-current="page"
-                                     href="{{ url_for('obter_produtos') }}">Produtos</a>
+                                     href="{{ url_for('main.obter_produto') }}">Produtos</a>
                             </li>
                             <li class="nav-item">
                                   <a class="nav-link active" aria-current="page"
-                                     href="{{ url_for('obter_categoria') }}">Categoria</a>
+                                     href="{{ url_for('main.obter_categoria') }}">Categoria</a>
                             </li>
                         </ul>
                    </div>
